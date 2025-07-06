@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { Button, ProgressBar } from 'react-native-paper';
 
 const RegistrationScreen = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     // Simple email regex for demonstration
     return /\S+@\S+\.\S+/.test(email);
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    if (loading) return; // Prevent duplicate submissions
     if (!name || !email || !company) {
       setError('All fields are required.');
       return;
@@ -22,8 +25,15 @@ const RegistrationScreen = () => {
       return;
     }
     setError('');
-    // Proceed with registration logic (e.g., API call)
-    alert('Registration successful!');
+    setLoading(true);
+    // Simulate network request
+    setTimeout(() => {
+      setLoading(false);
+      setName('');
+      setEmail('');
+      setCompany('');
+      alert('Registration successful!');
+    }, 1500);
   };
 
   return (
@@ -53,13 +63,19 @@ const RegistrationScreen = () => {
           placeholderTextColor="#888"
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Register"
-            onPress={handleRegister}
-            color={styles.button.backgroundColor}
-          />
-        </View>
+        {loading && (
+          <ProgressBar indeterminate style={styles.progressBar} />
+        )}
+        <Button
+          mode="contained"
+          onPress={handleRegister}
+          style={styles.button}
+          contentStyle={{ paddingVertical: 8 }}
+          loading={loading}
+          disabled={loading}
+        >
+          Register
+        </Button>
       </View>
     </View>
   );
@@ -109,19 +125,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
   },
-  buttonContainer: {
+  button: {
     marginTop: 8,
     borderRadius: 8,
-    overflow: 'hidden',
-    // For iOS shadow on button
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  button: {
-    backgroundColor: '#4f8cff', // App's accent color
+  progressBar: {
+    marginBottom: 12,
+    borderRadius: 8,
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    overflow: 'hidden',
   },
 });
 
