@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Button, ProgressBar } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RegistrationStackParamList } from './types';
 
-const RegistrationScreen = () => {
+// If you want to use props directly:
+type RegistrationScreenProps = NativeStackScreenProps<RegistrationStackParamList, 'Registration'>;
+
+const RegistrationScreen: React.FC<Partial<RegistrationScreenProps>> = (props) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const navigation = useNavigation<NativeStackNavigationProp<RegistrationStackParamList, 'Registration'>>();
 
   const validateEmail = (email: string) => {
     // Simple email regex for demonstration
@@ -15,7 +23,7 @@ const RegistrationScreen = () => {
   };
 
   const handleRegister = async () => {
-    if (loading) return; // Prevent duplicate submissions
+    if (loading) return;
     if (!name || !email || !company) {
       setError('All fields are required.');
       return;
@@ -29,11 +37,20 @@ const RegistrationScreen = () => {
     // Simulate network request
     setTimeout(() => {
       setLoading(false);
+      setSuccess(true);
       setName('');
       setEmail('');
       setCompany('');
-      alert('Registration successful!');
+      setTimeout(() => {
+        setSuccess(false);
+        navigation.navigate('ThankYou', { name, email });
+      }, 1000);
     }, 1500);
+  };
+
+  const handleInputChange = (setter: (val: string) => void) => (val: string) => {
+    setter(val);
+    if (error) setError('');
   };
 
   return (
@@ -44,35 +61,39 @@ const RegistrationScreen = () => {
           style={styles.input}
           placeholder="Name"
           value={name}
-          onChangeText={setName}
+          onChangeText={handleInputChange(setName)}
           placeholderTextColor="#888"
+          editable={!loading && !success}
         />
         <TextInput
           style={styles.input}
           placeholder="Email"
           keyboardType="email-address"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={handleInputChange(setEmail)}
           placeholderTextColor="#888"
+          editable={!loading && !success}
         />
         <TextInput
           style={styles.input}
           placeholder="Company"
           value={company}
-          onChangeText={setCompany}
+          onChangeText={handleInputChange(setCompany)}
           placeholderTextColor="#888"
+          editable={!loading && !success}
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {loading && (
           <ProgressBar indeterminate style={styles.progressBar} />
         )}
+        {success && <Text style={styles.success}>✓ Registration successful!</Text>}
         <Button
           mode="contained"
           onPress={handleRegister}
           style={styles.button}
           contentStyle={{ paddingVertical: 8 }}
           loading={loading}
-          disabled={loading}
+          disabled={loading || success}
         >
           Register
         </Button>
@@ -135,6 +156,13 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#e0e0e0',
     overflow: 'hidden',
+  },
+  success: {
+    color: '#388e3c',
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 12,
+    fontWeight: 'bold',
   },
 });
 
